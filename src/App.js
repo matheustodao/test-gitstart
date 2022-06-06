@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 const App = () => {
-  
+  const [usersOnline, setUsersOnline] = useState([]);
   const fetchUserIds = async () => {
     return ["john.smith", "sara.lee", "jack.ma"];
   };
@@ -29,15 +29,37 @@ const App = () => {
   
   */
 
+ const fetchUsersOnlineAndSendEmail = async () => {
+    const usersIds = await fetchUserIds();
+    
+    const users = usersIds.map(async (id) => {
+      const user = await checkStatus(id);
+      const getUserOnline = user.status === 'online' && user; 
+      console.log(getUserOnline)
+      return getUserOnline;
+    });
+
+   const usersAlreadySentEmail = await Promise.all(users.filter(async (user) => {
+     await sendEmail(user.id);
+     return user;
+   }));
+   
+   setUsersOnline(usersAlreadySentEmail);
+ };
+
+  useEffect(() => {
+    fetchUsersOnlineAndSendEmail();
+  }, []);
+
   return (
     <div className="App">
       <div className="App-header">
         <div>
           All online users that introductions were sucessfully sent
           <ul>
-            <li>Student 1</li>
-            <li>Student 2</li>
-            <li>Student 3</li>
+            {usersOnline.map((user) => user && (
+              <li key={user.id}>{user.id} - {user.status}</li>
+            ))}
           </ul>
         </div>
       </div>
